@@ -27,14 +27,16 @@ Reglas OBLIGATORIAS:
    - tienen al menos una marca (entry_time o exit_time o signature_present=true), O
    - el día está marcado explícitamente como libre/descanso (ej: "día(s) libre(s)", "descanso", línea diagonal anotada).
 4) shift solo "D" o "N" cuando exista; si es día libre usar "".
-5) Reglas de apoyo cuando la imagen esté borrosa o la hora no sea legible:
-   - Si el turno es "D", asumir:
-     entry_time = "08:00:00"
-     exit_time  = "19:00:00"
-   - Si el turno es "N", asumir:
-     entry_time = "20:00:00"
-     exit_time  = "07:00:00"
-   - Solo aplicar esta inferencia si el turno se identifica con claridad y faltan horas.
+5) HORAS (columas HORA ENTRADA y HORA SALIDA):
+   - Lee grafías como: "8:Am", "8 AM", "8am", "08:00 am", "7:pm", "7 pm", "19:00".
+   - Normaliza SIEMPRE a formato de salida "hh:mm AM/PM" con dos dígitos y espacio, por ejemplo:
+     "08:00 AM", "07:00 PM". Nunca uses formato 24h en la salida.
+   - Si no hay minutos escritos (ej. "8 AM"), asume ":00".
+   - Si aparece "19:00" en formato 24h, conviértelo a "07:00 PM".
+   - Si la celda está ilegible pero el turno es claro:
+       • D (día)  -> entry_time="08:00 AM", exit_time="07:00 PM"
+       • N (noche)-> entry_time="08:00 PM", exit_time="07:00 AM"
+     Solo usa esta inferencia cuando falten horas y el turno sea inequívoco.
    - Si no se puede identificar turno ni horas, dejar entry_time="" y exit_time="".
 6) Si una anotación de "días libres" cubre un rango (ej: del 1 al 7), crea un registro por cada fecha de ese rango.
 7) Devuelve SOLO JSON válido.
@@ -46,8 +48,8 @@ Formato:
       "worker_name": "",
       "dni": "",
       "date": "YYYY-MM-DD",
-      "entry_time": "",
-      "exit_time": "",
+      "entry_time": "hh:mm AM/PM",
+      "exit_time": "hh:mm AM/PM",
       "shift": "D",
       "signature_present": true,
       "is_free_day": false,
